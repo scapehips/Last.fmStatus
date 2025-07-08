@@ -45,7 +45,7 @@ app.get("/:username/latest-song", async (req, res) => {
           medium: getImageUrl(track.image, "medium"),
           large: getImageUrl(track.image, "large"),
           extralarge: getImageUrl(track.image, "extralarge"),
-          fullsize: getImageUrl(track.image, "full", true),
+          fullsize: getImageUrl(track.image, "extralarge", true),
         },
       },
     };
