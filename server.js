@@ -10,20 +10,11 @@ app.get("/:username/latest-song", async (req, res) => {
   const { username } = req.params;
 
   try {
-    const { data } = await axios.get(
-      `https://ws.audioscrobbler.com/2.0/`,
-      {
-        params: {
-          method: "user.getrecenttracks",
-          user: username,
-          api_key: API_KEY,
-          format: "json",
-          limit: 1
-        }
-      }
+    const response = await axios.get(
+      `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${username}&api_key=${API_KEY}&format=json&limit=1`
     );
 
-    const track = data.recenttracks.track[0];
+    const track = response.data.recenttracks.track[0];
 
     const result = {
       track: {
@@ -32,54 +23,59 @@ app.get("/:username/latest-song", async (req, res) => {
         url: track.url || null,
         streamable: track.streamable || null,
 
-      artist: {
-        name: track.artist["#text"] || null,
-        mbid: track.artist.mbid || null,
+        artist: {
+          name: track.artist["#text"] || null,
+          mbid: track.artist.mbid || null,
+        },
+        
+        album: {
+          name: track.album["#text"] || null,
+          mbid: null, // We'll try to get it from MusicBrainz optionally
+        },
+        
+        date: track.date
+          ? {
+              text: track.date["#text"],
+              uts: track.date.uts,
+          }
+          : null,
+
+        image: {
+          small: getImageUrl(track.image, "small"),
+          medium: getImageUrl(track.image, "medium"),
+          large: getImageUrl(track.image, "large"),
+          extralarge: getImageUrl(track.image, "extralarge"),
+          fullsize: getImageUrl(track.image, "full", true),
+        },
       },
+    };
 
-      album: {
-        name: track.album["#text"] || null,
-        mbid: null, // We'll try to get it from MusicBrainz optionally
-      },
+    // OPTIONAL: Enhance with MusicBrainz data if needed
+    // You can fetch recording/album info using track.mbid or artist/track name if available
 
-      played_at: track.date
-        ? {
-            text: track.date["#text"],
-            uts: track.date.uts,
-        }
-        : null,
-
-      image: {
-        small: getImage(track.image, "small"),
-        medium: getImage(track.image, "medium"),
-        large: getImage(track.image, "large"),
-        extralarge: getImage(track.image, "extralarge"),
-        fullsize: getFullImage(track.image),
-      },
-    },
-  };
-
-  res.json(response);
-  
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: "Failed to fetch track data" });
+    res.json(result);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({
+      error: "Failed to fetch data from Last.fm",
+    });
   }
 });
 
-// Get a specific image size
-function getImage(images, size) {
-  const img = images.find((i) => i.size === size);
-  return img && img["#text"] ? img["#text"] : null;
-}
+// Helper to extract image URL by size
+function getImageUrl(images, size, full = false) {
+  const image = images.find((img) => img.size === size);
+  if (!image || !image["#text"]) return null;
 
-// Derive full-size image from any available image
-function getFullImage(images) {
-  const largeImg = images.find((i) => i.size === "extralarge" || i.size === "large");
-  if (!largeImg || !largeImg["#text"]) return null;
-  return largeImg["#text"].replace(/\/(?:\d+(s|x\d+)|\d+s)\//, "/");
+  const url = image["#text"];
+  if (full) {
+    // Convert to full-size by stripping size part
+    return url.replace(/\/\d+(s|x\d+)?\//, "/");
+  }
+
+  return url;
 }
 
 app.listen(PORT, () => {
-  console.log(`Running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
