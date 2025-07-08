@@ -1,11 +1,13 @@
 const express = require("express");
 const axios = require("axios");
+const cors = require("cors"); // ← add this
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY;
 
+app.use(cors());
 app.get("/:username/latest-song", async (req, res) => {
   const { username } = req.params;
 
