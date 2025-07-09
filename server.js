@@ -1,6 +1,6 @@
 const express = require("express");
 const axios = require("axios");
-const cors = require("cors"); // ← add this
+const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
@@ -37,7 +37,7 @@ app.get("/:username/latest-song", async (req, res) => {
         
         album: {
           name: track.album["#text"] || null,
-          mbid: null, // We'll try to get it from MusicBrainz optionally
+          mbid: null,
         },
         
         date: track.date
