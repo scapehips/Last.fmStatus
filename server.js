@@ -8,8 +8,13 @@ const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY;
 
 app.use(cors());
+app.get("/", (req, res) => {
+  res.send("✅ Last.fm status API is running");
+});
+
 app.get("/:username/latest-song", async (req, res) => {
   const { username } = req.params;
+  console.log(`Incoming request for user: ${username}`);
 
   try {
     const response = await axios.get(
@@ -57,7 +62,7 @@ app.get("/:username/latest-song", async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.error(error.message);
+    console.error("❌ Error in /:username/latest-song route:", error.message);
     res.status(500).json({
       error: "Failed to fetch data from Last.fm",
     });
