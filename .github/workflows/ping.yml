@@ -1,0 +1,15 @@
+name: Keep Render App Awake
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"  # every 5 minutes
+  workflow_dispatch:  # optional: manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Render App
+        run: |
+          curl -s --retry 3 https://last-fmstatus.onrender.com/ > /dev/null
