@@ -57,9 +57,6 @@ app.get("/:username/latest-song", async (req, res) => {
       },
     };
 
-    // OPTIONAL: Enhance with MusicBrainz data if needed
-    // You can fetch recording/album info using track.mbid or artist/track name if available
-
     res.json(result);
   } catch (error) {
     console.error("❌ Error in /:username/latest-song route:", error.message);
