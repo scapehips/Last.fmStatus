@@ -3,6 +3,7 @@ name: keep render url awake
 on:
   schedule:
     - cron: "*/5 * * * *"
+  workflow_dispatch:
 
 jobs:
   ping:
