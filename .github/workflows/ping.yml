@@ -1,0 +1,14 @@
+name: keep render url awake
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ping url
+        run: |
+          curl -s --retry 3 https://last-fmstatus.onrender.com/ > /dev/null
