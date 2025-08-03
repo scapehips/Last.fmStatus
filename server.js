@@ -81,7 +81,7 @@ app.get("/:username/latest-song", async (req, res) => {
 
         image,
         },
-      },
+      };
 
     res.json(result);
   } catch (error) {
@@ -109,5 +109,6 @@ function getImageUrl(images, size, full = false) {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
 
 
