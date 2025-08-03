@@ -14,6 +14,11 @@ app.get("/", (req, res) => {
 
 app.get("/:username/latest-song", async (req, res) => {
   const { username } = req.params;
+
+  if (!/^[a-zA-Z0-9_]{2,30}$/.test(username)) {
+    return res.status(400).json({ error: "Invalid username format" });
+  }
+
   console.log(`Incoming request for user: ${username}`);
 
   try {
@@ -22,6 +27,33 @@ app.get("/:username/latest-song", async (req, res) => {
     );
 
     const track = response.data.recenttracks.track[0];
+
+    const image = {
+      small: getImageUrl(track.image, "small"),
+      medium: getImageUrl(track.image, "medium"),
+      large: getImageUrl(track.image, "large"),
+      extralarge: getImageUrl(track.image, "extralarge"),
+      fullsize: getImageUrl(track.image, "extralarge", true),
+      fallbackSource: null,
+    };
+
+    const allImagesMissing = !image.large && !image.fullsize;
+
+    if (allImagesMissing && track.mbid) {
+      try {
+        const mbResponse = await axios.get(
+          `https://coverartarchive.org/release-group/${track.mbid}/front`,
+          { responseType: "arraybuffer" }
+          );
+        const base64Image = Buffer.from(mbResponse.data, "binary").toString("base64");
+        image.large = `data:image/jpeg;base64,${base64Image}`;
+        image.fullsize = image.large;
+        image.fallbackSource = "musicbrainz";
+        console.log("✅ Used MusicBrainz cover art");
+      } catch (err) {
+        console.warn("⚠️ MusicBrainz fallback failed or not found:", err.message);
+                              }
+      }
 
     const result = {
       track: {
@@ -47,12 +79,7 @@ app.get("/:username/latest-song", async (req, res) => {
           }
           : null,
 
-        image: {
-          small: getImageUrl(track.image, "small"),
-          medium: getImageUrl(track.image, "medium"),
-          large: getImageUrl(track.image, "large"),
-          extralarge: getImageUrl(track.image, "extralarge"),
-          fullsize: getImageUrl(track.image, "extralarge", true),
+        image,
         },
       },
     };
@@ -83,3 +110,4 @@ function getImageUrl(images, size, full = false) {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
